@@ -152,7 +152,7 @@ def exec_cmd(args, debug=False, stdout2null=False, stderr2null=False):
         raise
 
 
-def run_cmd(args, cwd=None, stdout=subprocess.PIPE, ignore_stderr=False, ignore_all=False, debug=False):
+def run_cmd(args, cwd=None, stdout=subprocess.PIPE, ignore_stderr=False, ignore_all=False, debug=False, encoding=None):
     """
     Run the given command arguments.
 
@@ -163,6 +163,7 @@ def run_cmd(args, cwd=None, stdout=subprocess.PIPE, ignore_stderr=False, ignore_
     ignore_stderr: if True, ignore standard error
     ignore_all: if True, ignore both standard output and standard error
     debug: if True, print debug information
+    encoding: encoding to apply to the result text
     """
     if debug:
         perror("run_cmd: ", quoted(args))
@@ -178,7 +179,7 @@ def run_cmd(args, cwd=None, stdout=subprocess.PIPE, ignore_stderr=False, ignore_
     if ignore_all:
         sout = subprocess.DEVNULL
 
-    result = subprocess.run(args, check=True, cwd=cwd, stdout=sout, stderr=serr)
+    result = subprocess.run(args, check=True, cwd=cwd, stdout=sout, stderr=serr, encoding=encoding)
     if debug:
         print("Command finished with return code:", result.returncode)
 
@@ -386,14 +387,20 @@ def check_nvidia():
         return _nvidia
 
     try:
-        command = ['nvidia-smi']
-        run_cmd(command).stdout.decode("utf-8")
-
-        # ensure at least one CDI device resolves
-        if resolve_cdi(['/etc/cdi', '/var/run/cdi']):
-            os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-            _nvidia = "cuda"
-            return _nvidia
+        command = ['nvidia-smi', '--list-gpus']
+        result = run_cmd(command, encoding="utf-8")
+        if result.stdout.startswith("GPU"):
+            # If nvidia-smi found a GPU, ensure at least one CDI device resolves
+            if resolve_cdi(['/etc/cdi', '/var/run/cdi']):
+                os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+                _nvidia = "cuda"
+                return _nvidia
+            else:
+                _nvidia = ""
+                print("There appears to be an NVIDIA accelerator with no CDI configuration.")
+                print("You can use the \"nvidia-ctk cdi generate\" command from the ")
+                print("nvidia-container-toolkit to generate a CDI configuration.")
+                print("See ramalama-cuda(7).")
 
     except Exception:
         _nvidia = ""
