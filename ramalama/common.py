@@ -9,6 +9,7 @@ import os
 import platform
 import random
 import re
+import shlex
 import shutil
 import string
 import subprocess
@@ -105,13 +106,8 @@ def available(cmd: str) -> bool:
     return shutil.which(cmd) is not None
 
 
-def quoted(arr) -> str:
-    """Return string with quotes around elements containing spaces."""
-    return " ".join(['"' + element + '"' if ' ' in element else element for element in arr])
-
-
 def exec_cmd(args, stdout2null: bool = False, stderr2null: bool = False):
-    logger.debug(f"exec_cmd: {quoted(args)}")
+    logger.debug(f'exec_cmd: {" ".join(shlex.quote(arg) for arg in args)}')
     if stdout2null:
         with open(os.devnull, 'w') as devnull:
             os.dup2(devnull.fileno(), sys.stdout.fileno())
@@ -139,7 +135,8 @@ def run_cmd(args, cwd=None, stdout=subprocess.PIPE, ignore_stderr=False, ignore_
     ignore_all: if True, ignore both standard output and standard error
     encoding: encoding to apply to the result text
     """
-    logger.debug(f"run_cmd: {quoted(args)}")
+    quoted_args = [shlex.quote(arg) for arg in args]
+    logger.debug(f'run_cmd: {" ".join(quoted_args)}')
     logger.debug(f"Working directory: {cwd}")
     logger.debug(f"Ignore stderr: {ignore_stderr}")
     logger.debug(f"Ignore all: {ignore_all}")
@@ -152,7 +149,7 @@ def run_cmd(args, cwd=None, stdout=subprocess.PIPE, ignore_stderr=False, ignore_
     if ignore_all:
         sout = subprocess.DEVNULL
 
-    result = subprocess.run(args, check=True, cwd=cwd, stdout=sout, stderr=serr, encoding=encoding)
+    result = subprocess.run(quoted_args, check=True, cwd=cwd, stdout=sout, stderr=serr, encoding=encoding)
     logger.debug(f"Command finished with return code: {result.returncode}")
 
     return result
