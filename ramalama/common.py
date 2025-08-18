@@ -13,9 +13,11 @@ import shutil
 import string
 import subprocess
 import sys
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from functools import lru_cache
 from typing import TYPE_CHECKING, Literal, Protocol, TypeAlias, TypedDict, cast, get_args
+
+import yaml
 
 import ramalama.amdkfd as amdkfd
 from ramalama.logger import logger
@@ -239,23 +241,6 @@ class CDI_RETURN_TYPE(TypedDict):
     devices: list[CDI_DEVICE]
 
 
-def load_cdi_yaml(stream: Iterable[str]) -> CDI_RETURN_TYPE:
-    # Returns a dict containing just the "devices" key, whose value is
-    # a list of dicts, each mapping the key "name" to a device name.
-    # For example: {'devices': [{'name': 'all'}]}
-    # This depends on the key "name" being unique to the list of dicts
-    # under "devices" and the value of the "name" key being on the
-    # same line following a colon.
-
-    data: CDI_RETURN_TYPE = {"devices": []}
-    for line in stream:
-        if ':' in line:
-            key, value = line.split(':', 1)
-            if key.strip() == "- name":
-                data['devices'].append({'name': value.strip().strip('"')})
-    return data
-
-
 def load_cdi_config(spec_dirs: list[str]) -> CDI_RETURN_TYPE | None:
     # Loads the first YAML or JSON CDI configuration file found in the
     # given directories."""
@@ -268,19 +253,15 @@ def load_cdi_config(spec_dirs: list[str]) -> CDI_RETURN_TYPE | None:
                 if ext in [".yaml", ".yml"]:
                     try:
                         with open(file_path, "r") as stream:
-                            return load_cdi_yaml(stream)
-                    except OSError:
-                        continue
+                            return yaml.safe_load(stream)
+                    except (yaml.YAMLError, OSError) as e:
+                        perror(f"Failed to read YAML file {file_path}: {e}")
                 elif ext == ".json":
                     try:
                         with open(file_path, "r") as stream:
                             return json.load(stream)
-                    except json.JSONDecodeError:
-                        continue
-                    except UnicodeDecodeError:
-                        continue
-                    except OSError:
-                        continue
+                    except (json.JSONDecodeError, UnicodeDecodeError, OSError) as e:
+                        perror(f"Failed to read JSON file {file_path}: {e}")
     return None
 
 
