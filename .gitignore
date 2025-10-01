@@ -23,3 +23,5 @@ htmlcov/
 .hypothesis/
 uv.lock
 .tox
+*~
+#*
