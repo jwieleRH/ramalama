@@ -93,6 +93,10 @@ dnf_install_ffmpeg() {
   rm_non_ubi_repos
 }
 
+apt_install() {
+  apt-get -y install g++ cmake libcurl4-openssl-dev
+}
+
 dnf_install() {
   local rpm_exclude_list="selinux-policy,container-selinux"
   local rpm_list=("python3-dnf-plugin-versionlock"
@@ -182,7 +186,7 @@ cmake_steps() {
 }
 
 set_install_prefix() {
-  if [ "$containerfile" = "cuda" ] || [ "$containerfile" = "intel-gpu" ] || [ "$containerfile" = "cann" ] || [ "$containerfile" = "musa" ]; then
+  if [ "$containerfile" = "cuda" ] || [ "$containerfile" = "intel-gpu" ] || [ "$containerfile" = "cann" ] || [ "$containerfile" = "musa" ] || [ "$containerfile" = "qaic" ] ; then
     echo "/tmp/install"
   else
     echo "/usr"
@@ -219,6 +223,8 @@ configure_common_flags() {
     ;;
   musa)
     common_flags+=("-DGGML_MUSA=ON")
+    ;;
+  qaic)
     ;;
   esac
 }
@@ -294,6 +300,7 @@ main() {
   configure_common_flags
   common_flags+=("-DGGML_CCACHE=OFF" "-DCMAKE_INSTALL_PREFIX=${install_prefix}")
   available dnf && dnf_install
+  available apt-get && apt_install
 
   setup_build_env
   if [ "$uname_m" != "s390x" ]; then

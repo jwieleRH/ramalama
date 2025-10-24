@@ -99,7 +99,7 @@ class BaseEngine(ABC):
                 self.exec_args += ["--device", dev]
 
         for k, v in get_accel_env_vars().items():
-            # Special case for Cuda
+            # Special cases
             if k == "CUDA_VISIBLE_DEVICES":
                 if self.use_docker:
                     self.exec_args += ["--gpus", "all"]
@@ -108,6 +108,8 @@ class BaseEngine(ABC):
                     self.exec_args += ["--device", "nvidia.com/gpu=all"]
             elif k == "MUSA_VISIBLE_DEVICES":
                 self.exec_args += ["--env", "MTHREADS_VISIBLE_DEVICES=all"]
+            elif k == "QAIC_VISIBLE_DEVICES":
+                self.exec_args += ["--group-add", "keep-groups"]
 
             self.exec_args += ["-e", f"{k}={v}"]
 

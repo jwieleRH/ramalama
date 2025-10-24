@@ -1,0 +1,17 @@
+FROM ghcr.io/quic/cloud_ai_inference_ubuntu24:1.20.4.0 as builder
+
+COPY . /src/ramalama
+WORKDIR /src/ramalama
+
+RUN apt-get -y update && apt-get -y upgrade
+RUN container-images/scripts/build_llama_and_whisper.sh qaic
+
+# Final runtime image
+FROM ghcr.io/quic/cloud_ai_inference_ubuntu24:1.20.4.0
+
+# Copy the entire installation directory from the builder
+COPY --from=builder /tmp/install /usr
+# Copy the Ubuntu libraries from the builder
+COPY --from=builder /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
+
+ENTRYPOINT []

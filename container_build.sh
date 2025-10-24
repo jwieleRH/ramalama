@@ -129,7 +129,9 @@ build() {
 	  *)
 	      if [ "${build_all}" -eq 1 ]; then
 		  add_entrypoints "${conman[@]}" "${REGISTRY_PATH}"/"${target}" "${version}"
+		  if [ "$target" != "qaic" ]; then
 		  add_rag "${conman[@]}" "${REGISTRY_PATH}"/"${target}" "${version}"
+		  fi
 		  rm_container_image
 	      fi
       esac

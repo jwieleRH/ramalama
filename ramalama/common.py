@@ -15,6 +15,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from functools import lru_cache
+from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING, Literal, Protocol, TypeAlias, TypedDict, cast, get_args
 
 import yaml
@@ -513,10 +514,35 @@ def check_mthreads() -> Literal["musa"] | None:
     return None
 
 
-AccelType: TypeAlias = Literal["asahi", "cuda", "cann", "hip", "intel", "musa"]
+qaic_devices = ""
+
+
+def check_qaic() -> Literal["qaic"] | None:
+    logger.info("checking for qaic driver")
+    with NamedTemporaryFile(delete=False) as qaic_file:
+        command = ['/opt/qti-aic/tools/qaic-util', '--json', qaic_file.name]
+        try:
+            run_cmd(command, encoding="utf-8")
+        except subprocess.CalledProcessError as e:
+            logger.debug(f"No qaic-util: {e}")
+            return None
+        try:
+            qti_json = json.load(qaic_file)
+            device_info = qti_json["device_info"]
+            qaic_devices = [device["dev_link"] for device in device_info]
+        except (KeyError, json.JSONDecodeError) as e:
+            logger.warning(f"Unable to decode qaic device info: {e}")
+            return None
+
+    os.environ["QAIC_VISIBLE_DEVICES"] = ','.join(qaic_devices)
+    return "qaic"
+
+
+AccelType: TypeAlias = Literal["asahi", "cuda", "cann", "hip", "intel", "musa", "qaic"]
 
 
 def get_accel() -> AccelType | Literal["none"]:
+    logger.debug("checking for accelerators")
     checks: tuple[Callable[[], AccelType | None], ...] = (
         check_asahi,
         cast(Callable[[], Literal['cuda'] | None], check_nvidia),
@@ -524,6 +550,7 @@ def get_accel() -> AccelType | Literal["none"]:
         check_rocm_amd,
         check_intel,
         check_mthreads,
+        check_qaic,
     )
     for check in checks:
         if result := check():
@@ -553,6 +580,7 @@ GPUEnvVar: TypeAlias = Literal[
     "HIP_VISIBLE_DEVICES",
     "INTEL_VISIBLE_DEVICES",
     "MUSA_VISIBLE_DEVICES",
+    "QAIC_VISIBLE_DEVICES",
 ]
 
 

@@ -176,6 +176,7 @@ class BaseConfig:
             "HIP_VISIBLE_DEVICES": "quay.io/ramalama/rocm",
             "INTEL_VISIBLE_DEVICES": "quay.io/ramalama/intel-gpu",
             "MUSA_VISIBLE_DEVICES": "quay.io/ramalama/musa",
+            "QAIC_VISIBLE_DEVICES": "quay.io/ramalama/qaic",
             "VLLM_ASAHI_VISIBLE_DEVICES": "docker.io/vllm/vllm-openai",
             "VLLM_ASCEND_VISIBLE_DEVICES": "docker.io/vllm/vllm-openai",
             "VLLM_CUDA_VISIBLE_DEVICES": "docker.io/vllm/vllm-openai",
@@ -183,6 +184,7 @@ class BaseConfig:
             "VLLM_HIP_VISIBLE_DEVICES": "docker.io/vllm/vllm-openai",
             "VLLM_INTEL_VISIBLE_DEVICES": "docker.io/vllm/vllm-openai",
             "VLLM_MUSA_VISIBLE_DEVICES": "docker.io/vllm/vllm-openai",
+            "VLLM": "registry.redhat.io/rhelai1/ramalama-vllm",
         }
     )
     rag_image: str | None = None
