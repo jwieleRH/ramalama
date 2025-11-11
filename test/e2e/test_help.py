@@ -90,7 +90,7 @@ def test_default_image(command):
     match = DEFAULT_IMAGE_PATTERN.search(result.replace("\n", ""))
     remove_whitespaces = str.maketrans("", "", string.whitespace)
 
-    assert match.group("help_msg").strip() == "OCI container image to run with the specified AI model"
+    assert " ".join(match.group("help_msg").split()) == "OCI container image to run with the specified AI model"
     assert match.group("image").translate(remove_whitespaces).startswith("quay.io/ramalama/")
     assert match.group("image_tag") == "latest" or ramalama_version().startswith(match.group("image_tag"))
 
