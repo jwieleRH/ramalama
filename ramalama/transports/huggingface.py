@@ -151,6 +151,7 @@ class Huggingface(HFStyleRepoModel):
 
         self.type = "huggingface"
         self.hf_cli_available = is_hf_cli_available()
+        self.is_llama_server_style = '/' not in self.model_organization
 
     def get_cli_command(self):
         return "hf"
@@ -186,6 +187,14 @@ class Huggingface(HFStyleRepoModel):
 
     def get_cli_download_args(self, directory_path, model):
         return ["hf", "download", "--local-dir", directory_path, model]
+
+    def should_use_cli_fallback(self):
+        """Return whether CLI fallback should be used on pull failure.
+
+        For llama-server style repos skip the CLI fallback since these
+        can be downloaded directly via HTTP using the manifest endpoint.
+        """
+        return not self.is_llama_server_style
 
     def extract_model_identifiers(self):
         model_name, model_tag, model_organization = super().extract_model_identifiers()
