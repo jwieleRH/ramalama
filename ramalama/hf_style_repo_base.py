@@ -247,6 +247,10 @@ class HFStyleRepoModel(Transport, ABC):
         """Return the logout subcommand arguments. Can be overridden for different CLI structures."""
         return ["logout"]
 
+    def should_use_cli_fallback(self):
+        """Return whether CLI fallback should be used on pull failure. Can be overridden to disallow."""
+        return True
+
     def login(self, args):
         if not available(self.get_cli_command()):
             raise NotImplementedError(self.get_missing_message())
@@ -284,7 +288,7 @@ class HFStyleRepoModel(Transport, ABC):
             # No use pulling again
             raise
         except Exception as e:
-            if not available(self.get_cli_command()):
+            if not self.should_use_cli_fallback() or not available(self.get_cli_command()):
                 perror(f"URL pull failed and {self.get_cli_command()} not available")
                 raise KeyError(f"Failed to pull model: {str(e)}")
 
