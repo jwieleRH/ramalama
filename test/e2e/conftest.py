@@ -8,11 +8,12 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from test.conftest import ramalama_container_engine
 
 import bcrypt
 import pytest
 import requests
+
+from test.conftest import ramalama_container_engine
 
 if sys.byteorder == "big":
     # Most tests assume little-endian so need to disable endianness verification on big-endian systems
@@ -70,15 +71,26 @@ def container_registry():
         subprocess.run(
             [
                 # fmt: off
-                ramalama_container_engine, "run", "-d", "--rm",
-                "--name", registry_name,
-                "-p", f"{registry_port}:5000",
-                "-v", f"{work_dir.as_posix()}:/auth:Z",
-                "-e", "REGISTRY_AUTH=htpasswd",
-                "-e", "REGISTRY_AUTH_HTPASSWD_REALM='Registry Realm'",
-                "-e", "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd",
-                "-e", "REGISTRY_HTTP_TLS_CERTIFICATE=/auth/domain.crt",
-                "-e", "REGISTRY_HTTP_TLS_KEY=/auth/domain.key",
+                ramalama_container_engine,
+                "run",
+                "-d",
+                "--rm",
+                "--name",
+                registry_name,
+                "-p",
+                f"{registry_port}:5000",
+                "-v",
+                f"{work_dir.as_posix()}:/auth:Z",
+                "-e",
+                "REGISTRY_AUTH=htpasswd",
+                "-e",
+                "REGISTRY_AUTH_HTPASSWD_REALM='Registry Realm'",
+                "-e",
+                "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd",
+                "-e",
+                "REGISTRY_HTTP_TLS_CERTIFICATE=/auth/domain.crt",
+                "-e",
+                "REGISTRY_HTTP_TLS_KEY=/auth/domain.key",
                 registry_image,
                 # fmt: on
             ],

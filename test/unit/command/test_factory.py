@@ -42,7 +42,6 @@ def schema_files() -> dict[str, Path]:
 
 @dataclass
 class CLIArgs:
-
     runtime: str = "llama.cpp"
     subcommand: str = "serve"
     MODEL: str = "smollm:135m"
@@ -72,7 +71,6 @@ class CLIArgs:
 
 @dataclass
 class FactoryInput:
-
     cli_args: CLIArgs = field(default_factory=CLIArgs)
     has_mmproj: bool = False
     has_chat_template: bool = True
