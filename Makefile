@@ -121,6 +121,7 @@ lint:
 .PHONY: check-format
 check-format:
 	ruff format --check $(RUFF_TARGETS)
+	ruff check --select I $(RUFF_TARGETS)
 
 .PHONY: format
 format:
@@ -249,4 +250,3 @@ clean:
 	make -C docs clean
 	make -C docsite clean clean-generated
 	find . -depth -print0 | git check-ignore --stdin -z | xargs -0 rm -rf
-
