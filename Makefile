@@ -120,13 +120,13 @@ lint:
 
 .PHONY: check-format
 check-format:
-	ruff format --check $(RUFF_TARGETS)
 	ruff check --select I $(RUFF_TARGETS)
+	ruff format --check $(RUFF_TARGETS)
 
 .PHONY: format
 format:
+	ruff check --select I --fix $(RUFF_TARGETS)
 	ruff format $(RUFF_TARGETS)
-	ruff check --fix $(RUFF_TARGETS)
 
 .PHONY: codespell
 codespell:
