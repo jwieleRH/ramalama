@@ -70,7 +70,7 @@ def container_registry():
         # Start the registry
         # fmt: off
         subprocess.run(
-            [   
+            [
                 ramalama_container_engine, "run", "-d", "--rm",
                 "--name", registry_name,
                 "-p", f"{registry_port}:5000",
