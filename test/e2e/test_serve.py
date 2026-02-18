@@ -62,318 +62,189 @@ def test_basic_dry_run():
     assert not re.search(r".*-t -i", result), "run without terminal"
 
 
+# fmt: off
 @pytest.mark.e2e
 @pytest.mark.parametrize(
     "extra_params, pattern, config, env_vars, expected",
     [
-        # fmt: off
         pytest.param(
-            [], f".*{DRY_RUN_TEST_MODEL}.*", None, None, True, id="check model name", marks=skip_if_no_container
+            [], f".*{DRY_RUN_TEST_MODEL}.*", None, None, True,
+            id="check model name", marks=skip_if_no_container
         ),
         pytest.param(
-            [], r".*--name ramalama-.", None, None, True, id="check default --name flag", marks=skip_if_no_container
+            [], r".*--name ramalama-.", None, None, True,
+            id="check default --name flag", marks=skip_if_no_container
         ),
         pytest.param(
-            [],
-            r".*--cache-reuse 256",
-            None,
-            None,
-            True,
-            id="check --cache-reuse default value (256)",
-            marks=skip_if_no_container,
+            [], r".*--cache-reuse 256", None, None, True,
+            id="check --cache-reuse default value (256)", marks=skip_if_no_container
         ),
         pytest.param(
-            [],
-            r".*--no-webui",
-            None,
-            None,
-            False,
-            id="check --no-webui is not present by default",
-            marks=skip_if_no_container,
+            [], r".*--no-webui", None, None, False,
+            id="check --no-webui is not present by default", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--webui", "off"], r".*--no-webui", None, None, True, id="check --no-webui", marks=skip_if_no_container
+            ["--webui", "off"], r".*--no-webui", None, None, True,
+            id="check --no-webui", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--name", "foobar"],
-            r".*--name foobar .*",
-            None,
-            None,
-            True,
-            id="check --name foobar",
-            marks=skip_if_no_container,
+            ["--name", "foobar"], r".*--name foobar .*", None, None, True,
+            id="check --name foobar", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--name", "foobar"],
-            r".*--network",
-            None,
-            None,
-            False,
-            id="check --network is not present when run within container",
-            marks=skip_if_no_container,
+            ["--name", "foobar"], r".*--network", None, None, False,
+            id="check --network is not present when run within container", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--name", "foobar"],
-            r".*--host 0.0.0.0",
-            None,
-            None,
-            True,
-            id="check --host is not present when run within container",
-            marks=skip_if_no_container,
+            ["--name", "foobar"], r".*--host 0.0.0.0", None, None, True,
+            id="check --host is not present when run within container", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--name", "foobar"],
-            f".*{DRY_RUN_TEST_MODEL}.*",
-            None,
-            None,
-            True,
-            id="check test_model with --name foobar",
-            marks=skip_if_no_container,
+            ["--name", "foobar"], f".*{DRY_RUN_TEST_MODEL}.*", None, None, True,
+            id="check test_model with --name foobar", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--name", "foobar"],
-            r".*--seed",
-            None,
-            None,
-            False,
-            id="check --seed is not present by default",
-            marks=skip_if_no_container,
+            ["--name", "foobar"], r".*--seed", None, None, False,
+            id="check --seed is not present by default", marks=skip_if_no_container
         ),
         pytest.param(
             ["--network", "bridge", "--host", "127.1.2.3", "--name", "foobar"],
-            r".*--network bridge",
-            None,
-            None,
-            True,
-            id="check --network",
-            marks=skip_if_no_container,
+            r".*--network bridge", None, None, True,
+            id="check --network", marks=skip_if_no_container
         ),
         pytest.param(
             ["--host", "127.1.2.3"],
-            r".*--host 127.1.2.3",
-            None,
-            None,
-            False,
-            id="check --host is not modified when run within container",
-            marks=skip_if_no_container,
+            r".*--host 127.1.2.3", None, None, False,
+            id="check --host is not modified when run within container", marks=skip_if_no_container
         ),
         pytest.param(
             ["--host", "127.1.2.3", "--port", "1234"],
-            r".*-p 127.1.2.3:1234:1234",
-            None,
-            None,
-            True,
-            id="check -p is modified when run within container",
-            marks=skip_if_no_container,
+            r".*-p 127.1.2.3:1234:1234", None, None, True,
+            id="check -p is modified when run within container", marks=skip_if_no_container
         ),
         pytest.param(
-            [], r".*--temp 0.8", None, None, True, id="check --temp default value", marks=skip_if_no_container
+            [], r".*--temp 0.8", None, None, True,
+            id="check --temp default value", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--temp", "0.1"], r".*--temp 0.1", None, None, True, id="check --temp", marks=skip_if_no_container
+            ["--temp", "0.1"], r".*--temp 0.1", None, None, True,
+            id="check --temp", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--seed", "1234", "--name", "foobar"],
-            r".*--seed 1234",
-            None,
-            {"RAMALAMA_CONFIG": "NUL" if platform.system() == "Windows" else '/dev/null'},
-            True,
-            id="check --seed 1234 with RAMALAMA_CONFIG=/dev/null",
-            marks=skip_if_no_container,
+            ["--seed", "1234", "--name", "foobar"], r".*--seed 1234",
+            None, {"RAMALAMA_CONFIG": "NUL" if platform.system() == "Windows" else '/dev/null'}, True,
+            id="check --seed 1234 with RAMALAMA_CONFIG=/dev/null", marks=skip_if_no_container,
         ),
         pytest.param(
-            ["--name", "foobar"],
-            r".*--pull newer",
-            None,
-            {"RAMALAMA_CONFIG": "NUL" if platform.system() == "Windows" else '/dev/null'},
-            True,
-            id="check pull policy with RAMALAMA_CONFIG=/dev/null",
-            marks=[skip_if_no_container, skip_if_docker],
+            ["--name", "foobar"], r".*--pull newer", None, {
+                "RAMALAMA_CONFIG": "NUL" if platform.system() == "Windows" else '/dev/null'
+            }, True,
+            id="check pull policy with RAMALAMA_CONFIG=/dev/null", marks=[skip_if_no_container, skip_if_docker],
         ),
         pytest.param(
-            ["--name", "foobar"],
-            r".*--cap-drop=all",
-            None,
-            None,
-            True,
-            id="check if --cap-drop=all is present",
-            marks=skip_if_no_container,
+            ["--name", "foobar"], r".*--cap-drop=all", None, None, True,
+            id="check if --cap-drop=all is present", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--name", "foobar"],
-            r".*no-new-privileges",
-            None,
-            None,
-            True,
-            id="check if --no-new-privs is present",
-            marks=skip_if_no_container,
+            ["--name", "foobar"], r".*no-new-privileges", None, None, True,
+            id="check if --no-new-privs is present", marks=skip_if_no_container),
+        pytest.param(
+            [], r".*--pull newer", None, None, True,
+            id="check default pull policy", marks=[skip_if_no_container, skip_if_docker],
         ),
         pytest.param(
-            [],
-            r".*--pull newer",
-            None,
-            None,
-            True,
-            id="check default pull policy",
-            marks=[skip_if_no_container, skip_if_docker],
+            ["--pull", "never"], r".*--pull never", None, None, True,
+            id="check --pull never", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--pull", "never"],
-            r".*--pull never",
-            None,
-            None,
-            True,
-            id="check --pull never",
-            marks=skip_if_no_container,
+            ["--privileged"], r".*--privileged", None, None, True,
+            id="check --privileged", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--privileged"], r".*--privileged", None, None, True, id="check --privileged", marks=skip_if_no_container
+            ["--privileged"], r".*--cap-drop=all", None, None, False,
+            id="check cap-drop=all is not set when --privileged", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--privileged"],
-            r".*--cap-drop=all",
-            None,
-            None,
-            False,
-            id="check cap-drop=all is not set when --privileged",
-            marks=skip_if_no_container,
+            ["--privileged"], r".*no-new-privileges", None, None, False,
+            id="check no-new-privileges is not set when --privileged", marks=skip_if_no_container
         ),
         pytest.param(
-            ["--privileged"],
-            r".*no-new-privileges",
-            None,
-            None,
-            False,
-            id="check no-new-privileges is not set when --privileged",
-            marks=skip_if_no_container,
+            ["--selinux", "True"], r".*--security-opt=label=disable", None, None, False,
+            id="check --selinux=True enables container separation", marks=skip_if_no_container),
+        pytest.param(
+            ["--selinux", "False"], r".*--security-opt=label=disable", None, None, True,
+            id="check --selinux=False disables container separation", marks=skip_if_no_container),
+        pytest.param(
+            [], r".*--host 0.0.0.0", None, None, True,
+            id="check default --host value to 0.0.0.0", marks=skip_if_container
         ),
         pytest.param(
-            ["--selinux", "True"],
-            r".*--security-opt=label=disable",
-            None,
-            None,
-            False,
-            id="check --selinux=True enables container separation",
-            marks=skip_if_no_container,
-        ),
-        pytest.param(
-            ["--selinux", "False"],
-            r".*--security-opt=label=disable",
-            None,
-            None,
-            True,
-            id="check --selinux=False disables container separation",
-            marks=skip_if_no_container,
-        ),
-        pytest.param(
-            [],
-            r".*--host 0.0.0.0",
-            None,
-            None,
-            True,
-            id="check default --host value to 0.0.0.0",
-            marks=skip_if_container,
-        ),
-        pytest.param(
-            [],
-            r".*--cache-reuse 256",
-            None,
-            None,
-            True,
-            id="check --cache-reuse default value",
-            marks=skip_if_container,
+            [], r".*--cache-reuse 256", None, None, True,
+            id="check --cache-reuse default value", marks=skip_if_container
         ),
         pytest.param(
             ["--host", "127.0.0.1"],
-            r".*--host 127.0.0.1",
-            None,
-            None,
-            True,
-            id="check --host flag to 127.0.0.1",
-            marks=skip_if_container,
+            r".*--host 127.0.0.1", None, None, True,
+            id="check --host flag to 127.0.0.1", marks=skip_if_container
         ),
         pytest.param(
             ["--seed", "abcd"],
-            r".*--seed abcd",
-            None,
-            None,
-            True,
-            id="check --seed flag is set",
-            marks=skip_if_container,
-        ),
-        pytest.param(["--detach"], r".*-d .*", None, None, True, id="check ---detach", marks=skip_if_no_container),
-        pytest.param(["-d"], r".*-d .*", None, None, True, id="check -d", marks=skip_if_no_container),
-        pytest.param(["--runtime-args", "--foo -bar"], r".*--foo\s+-bar", None, None, True, id="check --runtime-args"),
-        pytest.param(
-            ["--runtime-args", "--foo='a b c'"],
-            r".*--foo=a b c",
-            None,
-            None,
-            True,
-            id="check --runtime-args=\"--foo='a b c'\"",
+            r".*--seed abcd", None, None, True,
+            id="check --seed flag is set", marks=skip_if_container
         ),
         pytest.param(
-            ["--thinking", "False"],
-            r".*--reasoning-budget 0",
-            None,
-            None,
-            True,
+            ["--detach"], r".*-d .*", None, None, True,
+            id="check ---detach", marks=skip_if_no_container
+        ),
+        pytest.param(
+            ["-d"], r".*-d .*", None, None, True,
+            id="check -d", marks=skip_if_no_container
+        ),
+        pytest.param(
+            ["--runtime-args", "--foo -bar"], r".*--foo\s+-bar", None, None, True,
+            id="check --runtime-args"
+        ),
+        pytest.param(
+            ["--runtime-args", "--foo='a b c'"], r".*--foo=a b c", None, None, True,
+            id="check --runtime-args=\"--foo='a b c'\""
+        ),
+        pytest.param(
+            ["--thinking", "False"], r".*--reasoning-budget 0", None, None, True,
             id="check --reasoning-budget 0 passed to runtime",
         ),
         pytest.param(
-            [],
-            r".*--reasoning-budget",
-            None,
-            None,
-            False,
+            [], r".*--reasoning-budget", None, None, False,
             id="check --reasoning-budget not passed by default",
         ),
-        # fmt: on
     ],
 )
+# fmt: on
 def test_params(extra_params, pattern, config, env_vars, expected):
     with RamalamaExecWorkspace(config=config, env_vars=env_vars) as ctx:
         result = ctx.check_output(RAMALAMA_DRY_RUN + extra_params + [DRY_RUN_TEST_MODEL])
         assert bool(re.search(pattern, result)) is expected
 
 
+# fmt: off
 @pytest.mark.e2e
 @pytest.mark.parametrize(
     "extra_params, pattern, config, env_vars, expected_exit_code, expected",
     [
-        # fmt: off
         pytest.param(
-            ["--pull", "bogus"],
-            r".*error: argument --pull: invalid choice: 'bogus'",
-            None,
-            None,
-            2,
-            True,
-            id="raise error when --pull value is not valid",
-            marks=skip_if_no_container,
+            ["--pull", "bogus"], r".*error: argument --pull: invalid choice: 'bogus'", None, None, 2, True,
+            id="raise error when --pull value is not valid", marks=skip_if_no_container,
         ),
         pytest.param(
-            ["--runtime-args", "--foo='a b c"],
-            r".*No closing quotation",
-            None,
-            None,
-            22,
-            True,
+            ["--runtime-args", "--foo='a b c"], r".*No closing quotation", None, None, 22, True,
             id="raise closing quotation error with --runtime-args",
         ),
         pytest.param(
-            ["--selinux", "100"],
-            r".*Error: Cannot coerce '100' to bool",
-            None,
-            None,
-            22,
-            True,
-            id="raise error when --selinux has non boolean value",
-            marks=skip_if_no_container,
-        ),
-        # fmt: on
+            ["--selinux", "100"], r".*Error: Cannot coerce '100' to bool", None, None, 22, True,
+            id="raise error when --selinux has non boolean value", marks=skip_if_no_container,
+        )
     ],
 )
+# fmt: on
 def test_params_errors(extra_params, pattern, config, env_vars, expected_exit_code, expected):
     with RamalamaExecWorkspace(config=config, env_vars=env_vars) as ctx:
         with pytest.raises(CalledProcessError) as exc_info:
@@ -519,7 +390,7 @@ def test_stop_failures():
             ctx.check_output(["ramalama", "stop", "--all", container_id], stderr=STDOUT)
         assert exc_info.value.returncode == 22
         assert re.search(
-            rf"Error: specifying --all and container name, {container_id}, not allowed",
+            fr"Error: specifying --all and container name, {container_id}, not allowed",
             exc_info.value.output.decode("utf-8"),
         )
 
@@ -868,8 +739,8 @@ def test_serve_api(caplog):
             stderr=STDOUT,
         )
 
-        assert re.search(rf".*Llama Stack RESTAPI: http://localhost:{container_port}", result)
-        assert re.search(rf".*OpenAI RESTAPI: http://localhost:{container_port}/v1/openai", result)
+        assert re.search(fr".*Llama Stack RESTAPI: http://localhost:{container_port}", result)
+        assert re.search(fr".*OpenAI RESTAPI: http://localhost:{container_port}/v1/openai", result)
 
         # Inspect the models API
         # FIXME: llama-stack image is currently broken.

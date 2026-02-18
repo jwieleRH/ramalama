@@ -68,34 +68,23 @@ def container_registry():
             pwfile.write(f"{registry_username}:{passwd_hash}")
 
         # Start the registry
+        # fmt: off
         subprocess.run(
-            [
-                # fmt: off
-                ramalama_container_engine,
-                "run",
-                "-d",
-                "--rm",
-                "--name",
-                registry_name,
-                "-p",
-                f"{registry_port}:5000",
-                "-v",
-                f"{work_dir.as_posix()}:/auth:Z",
-                "-e",
-                "REGISTRY_AUTH=htpasswd",
-                "-e",
-                "REGISTRY_AUTH_HTPASSWD_REALM='Registry Realm'",
-                "-e",
-                "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd",
-                "-e",
-                "REGISTRY_HTTP_TLS_CERTIFICATE=/auth/domain.crt",
-                "-e",
-                "REGISTRY_HTTP_TLS_KEY=/auth/domain.key",
+            [   
+                ramalama_container_engine, "run", "-d", "--rm",
+                "--name", registry_name,
+                "-p", f"{registry_port}:5000",
+                "-v", f"{work_dir.as_posix()}:/auth:Z",
+                "-e", "REGISTRY_AUTH=htpasswd",
+                "-e", "REGISTRY_AUTH_HTPASSWD_REALM='Registry Realm'",
+                "-e", "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd",
+                "-e", "REGISTRY_HTTP_TLS_CERTIFICATE=/auth/domain.crt",
+                "-e", "REGISTRY_HTTP_TLS_KEY=/auth/domain.key",
                 registry_image,
-                # fmt: on
             ],
             check=True,
         )
+        # fmt: on
         time.sleep(2)
 
         try:
