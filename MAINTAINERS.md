@@ -6,6 +6,7 @@
 | -------- | ------- | ------- |
 |  Dan Walsh | rhatdan | Red Hat |
 |  Mike Bonnet | mikebonnet | Red Hat |
+|  Oliver Walsh | olliewalsh | Red Hat |
 
 ## Reviewers
 
