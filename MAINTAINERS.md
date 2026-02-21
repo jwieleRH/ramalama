@@ -10,6 +10,7 @@
 
 ## Reviewers
 
-| Reviewer| GitHub ID| Affiliation|
-| -------- | ------- | ------- |
-| TODO | TODO | TODO |
+| Reviewer | GitHub ID | Affiliation |
+| -------- | --------- | ----------- |
+| Michael Engel | engelmi | Red Hat |
+| Brian Mahabir | bmahabirbu | Red Hat |
