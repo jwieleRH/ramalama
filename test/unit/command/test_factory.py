@@ -178,3 +178,46 @@ def test_command_factory_missing_schema(spec_files: dict[str, Path]):
     with pytest.raises(FileNotFoundError) as ex:
         factory.create("llama.cpp", "run", None)
     assert ex.match("No schema file found for spec version '1.0.0' ")
+
+
+@pytest.mark.parametrize(
+    "ctx_size,expected_cmd",
+    [
+        (
+            0,
+            "python3 -m vllm.entrypoints.openai.api_server --model /path/to/model --served-model-name library/smollm --port 1337 --seed 12345",  # noqa: E501
+        ),
+        (
+            4096,
+            "python3 -m vllm.entrypoints.openai.api_server --model /path/to/model --served-model-name library/smollm --max_model_len 4096 --port 1337 --seed 12345",  # noqa: E501
+        ),
+    ],
+)
+def test_vllm_ctx_size(ctx_size: int, expected_cmd: str, spec_files: dict[str, Path], schema_files: dict[str, Path]):
+    cli_args = CLIArgs(runtime="vllm", container=False, context=ctx_size, runtime_args="").__dict__
+
+    model = New(cli_args["MODEL"], argparse.Namespace(**cli_args))
+    mock_model = MagicMock()
+    mock_model.model_name = model.model_name
+    mock_model.model_tag = model.model_tag
+    mock_model.model_organization = model.model_organization
+    mock_model.model_alias = f"{model.model_organization}/{model.model_name}"
+    mock_model._get_entry_model_path.return_value = "/path/to/model"
+    mock_model._get_mmproj_path.return_value = ""
+    mock_model._get_chat_template_path.return_value = ""
+    mock_model.draft_model = None
+
+    model_ctx = RamalamaModelContext(
+        model=mock_model,
+        is_container=cli_args["container"],
+        should_generate=cli_args["generate"],
+        dry_run=cli_args["dry_run"],
+    )
+    func_ctx = RamalamaHostContext(cli_args["container"], False, False, False, None)
+    arg_ctx = RamalamaArgsContext.from_argparse(argparse.Namespace(**cli_args))
+    ctx = RamalamaCommandContext(arg_ctx, model_ctx, func_ctx)
+
+    factory = CommandFactory(spec_files, schema_files)
+    cmd = factory.create(cli_args["runtime"], cli_args["subcommand"], ctx)
+
+    assert " ".join(cmd) == expected_cmd
