@@ -99,6 +99,14 @@ class FactoryInput:
             FactoryInput(cli_args=CLIArgs(max_tokens=99, runtime_args="")),
             "llama-server --host 0.0.0.0 --port 1337 --log-file /var/tmp/ramalama.log --model /path/to/model --chat-template-file /path/to/chat-template --jinja --no-warmup --reasoning-budget 0 --alias library/smollm --ctx-size 512 --temp 11 --cache-reuse 1024 -v -ngl 44 --model-draft /path/to/draft-model -ngld 44 --threads 8 --seed 12345 --log-colors on -n 99",  # noqa: E501
         ),
+        (
+            FactoryInput(cli_args=CLIArgs(runtime="vllm", container=False, context=0, runtime_args="")),
+            "python3 -m vllm.entrypoints.openai.api_server --model /path/to/model --served-model-name library/smollm --port 1337 --seed 12345",  # noqa: E501
+        ),
+        (
+            FactoryInput(cli_args=CLIArgs(runtime="vllm", container=False, context=4096, runtime_args="")),
+            "python3 -m vllm.entrypoints.openai.api_server --model /path/to/model --served-model-name library/smollm --max_model_len 4096 --port 1337 --seed 12345",  # noqa: E501
+        ),
     ],
 )
 def test_command_factory(
@@ -178,46 +186,3 @@ def test_command_factory_missing_schema(spec_files: dict[str, Path]):
     with pytest.raises(FileNotFoundError) as ex:
         factory.create("llama.cpp", "run", None)
     assert ex.match("No schema file found for spec version '1.0.0' ")
-
-
-@pytest.mark.parametrize(
-    "ctx_size,expected_cmd",
-    [
-        (
-            0,
-            "python3 -m vllm.entrypoints.openai.api_server --model /path/to/model --served-model-name library/smollm --port 1337 --seed 12345",  # noqa: E501
-        ),
-        (
-            4096,
-            "python3 -m vllm.entrypoints.openai.api_server --model /path/to/model --served-model-name library/smollm --max_model_len 4096 --port 1337 --seed 12345",  # noqa: E501
-        ),
-    ],
-)
-def test_vllm_ctx_size(ctx_size: int, expected_cmd: str, spec_files: dict[str, Path], schema_files: dict[str, Path]):
-    cli_args = CLIArgs(runtime="vllm", container=False, context=ctx_size, runtime_args="").__dict__
-
-    model = New(cli_args["MODEL"], argparse.Namespace(**cli_args))
-    mock_model = MagicMock()
-    mock_model.model_name = model.model_name
-    mock_model.model_tag = model.model_tag
-    mock_model.model_organization = model.model_organization
-    mock_model.model_alias = f"{model.model_organization}/{model.model_name}"
-    mock_model._get_entry_model_path.return_value = "/path/to/model"
-    mock_model._get_mmproj_path.return_value = ""
-    mock_model._get_chat_template_path.return_value = ""
-    mock_model.draft_model = None
-
-    model_ctx = RamalamaModelContext(
-        model=mock_model,
-        is_container=cli_args["container"],
-        should_generate=cli_args["generate"],
-        dry_run=cli_args["dry_run"],
-    )
-    func_ctx = RamalamaHostContext(cli_args["container"], False, False, False, None)
-    arg_ctx = RamalamaArgsContext.from_argparse(argparse.Namespace(**cli_args))
-    ctx = RamalamaCommandContext(arg_ctx, model_ctx, func_ctx)
-
-    factory = CommandFactory(spec_files, schema_files)
-    cmd = factory.create(cli_args["runtime"], cli_args["subcommand"], ctx)
-
-    assert " ".join(cmd) == expected_cmd
