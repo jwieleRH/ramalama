@@ -120,12 +120,13 @@ lint:
 
 .PHONY: check-format
 check-format:
+	ruff check --select I $(RUFF_TARGETS)
 	ruff format --check $(RUFF_TARGETS)
 
 .PHONY: format
 format:
+	ruff check --select I --fix $(RUFF_TARGETS)
 	ruff format $(RUFF_TARGETS)
-	ruff check --fix $(RUFF_TARGETS)
 
 .PHONY: codespell
 codespell:
@@ -249,4 +250,3 @@ clean:
 	make -C docs clean
 	make -C docsite clean clean-generated
 	find . -depth -print0 | git check-ignore --stdin -z | xargs -0 rm -rf
-
