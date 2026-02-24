@@ -553,8 +553,6 @@ def test_quadlet_and_kube_generation_with_container_registry(container_registry,
                 "/mnt/models/model.file",
                 "--served-model-name",
                 f"{model_alias}",
-                "--max_model_len",
-                "2048",
                 "--port",
                 "1234",
             ]
