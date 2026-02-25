@@ -146,7 +146,7 @@ endif
 
 .PHONY: type-check
 type-check:
-	mypy $(addprefix --exclude=,$(EXCLUDE_DIRS)) --exclude test $(PROJECT_DIR)
+	mypy $(addprefix --exclude=,$(EXCLUDE_DIRS)) --exclude test $(PROJECT_DIR) --check-untyped-defs
 
 .PHONY: validate
 validate: codespell lint man-check type-check
