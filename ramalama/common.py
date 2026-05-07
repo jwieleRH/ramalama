@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import hashlib
 import json
+import logging
 import os
 import platform
 import random
@@ -11,6 +12,7 @@ import shutil
 import string
 import subprocess
 import sys
+import tempfile
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from functools import lru_cache
@@ -569,7 +571,61 @@ def check_mthreads() -> Optional[Literal["musa"]]:
     return None
 
 
-AccelType: TypeAlias = Literal["asahi", "cuda", "cann", "hip", "intel", "musa"]
+@lru_cache(maxsize=1)
+def check_qaic() -> Optional[Literal["qaic"]]:
+    logger.debug("checking for qaic driver")
+    delete_temp = not logger.isEnabledFor(logging.DEBUG)
+
+    # Create temp file, get filename, close descriptor
+    fd, temp_path = tempfile.mkstemp(suffix='.json', text=True)
+    os.close(fd)  # Close immediately - we only need the path
+
+    try:
+        if not delete_temp:
+            logger.debug(f"qaic-util output saved to: {temp_path}")
+
+        command = ['/opt/qti-aic/tools/qaic-util', '--json', temp_path]
+        try:
+            run_cmd(command, encoding="utf-8")
+            with open(temp_path, 'r', encoding='utf-8') as f:
+                qti_json = json.load(f)
+        except (OSError, subprocess.CalledProcessError, json.JSONDecodeError) as e:
+            logger.debug(f"Unable to get qaic device info: {e}")
+            return None
+
+        try:
+            device_info = qti_json["device_info"]
+            qaic_devices = [str(device["qid"]) for device in device_info]
+        except (KeyError, TypeError):
+            logger.debug("No qaic devices found")
+            return None
+    finally:
+        if delete_temp and os.path.exists(temp_path):
+            os.unlink(temp_path)
+
+    if not qaic_devices:
+        logger.debug("No qaic devices found")
+        return None
+
+    qaic_visible_devices = os.environ.get("QAIC_VISIBLE_DEVICES", "")
+    visible_devices = qaic_visible_devices.split(',') if qaic_visible_devices else []
+
+    for device in visible_devices:
+        if device not in qaic_devices:
+            perror(f"{device} not found")
+            return None
+
+    # If no devices specified, use all devices
+    if not visible_devices:
+        visible_devices = qaic_devices
+
+    if not qaic_visible_devices:
+        os.environ["QAIC_VISIBLE_DEVICES"] = ','.join(visible_devices)
+
+    return "qaic"
+
+
+AccelType: TypeAlias = Literal["asahi", "cuda", "cann", "hip", "intel", "musa", "qaic"]
 
 
 @lru_cache(maxsize=1)
@@ -581,6 +637,7 @@ def get_accel() -> AccelType | Literal["none"]:
         check_rocm_amd,
         check_intel,
         check_mthreads,
+        check_qaic,
     )
     for check in checks:
         if result := check():
@@ -610,6 +667,7 @@ GPUEnvVar: TypeAlias = Literal[
     "HIP_VISIBLE_DEVICES",
     "INTEL_VISIBLE_DEVICES",
     "MUSA_VISIBLE_DEVICES",
+    "QAIC_VISIBLE_DEVICES",
 ]
 
 
