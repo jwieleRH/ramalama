@@ -337,6 +337,7 @@ class TestGetAccel:
         ("check_intel", "intel"),
         ("check_ascend", "cann"),
         ("check_asahi", "asahi"),
+        ("check_qaic", "qaic"),
     ]
 
     def setup_method(self):
